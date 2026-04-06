@@ -12,9 +12,9 @@ API_URL   = (
 SCREEN_W  = 360
 SCREEN_H  = 240
 
-PREVIEW_PATH = "preview.png"
+PREVIEW_PATH = "artifacts/preview.png"
 
-PRICE_CACHE_PATH = "price_cache.json"
+PRICE_CACHE_PATH = "artifacts/price_cache.json"
 
 # Agile prices are typically published between 16:00 and 20:00 local time.
 EVENING_REFRESH_START_HOUR = 16

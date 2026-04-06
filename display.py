@@ -1,4 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
+
 from config import SCREEN_W, SCREEN_H, PREVIEW_PATH
 from utils import now_local
 
@@ -49,5 +51,6 @@ def draw_image(price, valid_from, valid_to, ip):
 
 
 def save_preview(image):
+    Path(PREVIEW_PATH).parent.mkdir(parents=True, exist_ok=True)
     image.save(PREVIEW_PATH)
     print(f"Preview saved to {PREVIEW_PATH}")

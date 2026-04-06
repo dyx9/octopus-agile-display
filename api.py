@@ -70,6 +70,7 @@ def load_price_cache(cache_path=PRICE_CACHE_PATH):
 def save_price_cache(slots, last_fetch_utc, cache_path=PRICE_CACHE_PATH):
     """Persist cache JSON to disk."""
     path = Path(cache_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
     serializable = {
         "last_fetch_utc": last_fetch_utc.isoformat() if last_fetch_utc else None,
         "slots": [

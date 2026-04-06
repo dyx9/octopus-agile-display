@@ -10,5 +10,4 @@ wheels/
 .venv
 
 # Runtime artifacts
-preview.png
-price_cache.json
+artifacts/

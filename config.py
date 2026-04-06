@@ -16,6 +16,8 @@ PREVIEW_PATH = "artifacts/preview.png"
 
 PRICE_CACHE_PATH = "artifacts/price_cache.json"
 
+DAILY_PRICES_CSV_PATH = "artifacts/daily_prices.csv"
+
 # Agile prices are typically published between 16:00 and 20:00 local time.
 EVENING_REFRESH_START_HOUR = 16
 EVENING_REFRESH_END_HOUR = 20

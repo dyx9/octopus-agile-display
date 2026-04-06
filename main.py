@@ -6,7 +6,12 @@ from config import (
     EVENING_REFRESH_INTERVAL,
     EVENING_REFRESH_START_HOUR,
 )
-from api import get_prices_for_period, load_price_cache, save_price_cache
+from api import (
+    get_prices_for_period,
+    load_price_cache,
+    save_daily_prices_csv,
+    save_price_cache,
+)
 from utils import get_ip, current_slot_times, now_local, now_utc, seconds_until_next_slot_boundary
 from display import draw_image, save_preview
 from screen import init_screen, update_screen
@@ -64,6 +69,13 @@ def main():
             return None, slot_from, slot_from + timedelta(minutes=30)
         return slot["price"], slot["valid_from"], slot["valid_to"]
 
+    def day_slots_for_local_date(local_date):
+        day_slots = []
+        for slot in slots:
+            if slot["valid_from"].astimezone().date() == local_date:
+                day_slots.append(slot)
+        return sorted(day_slots, key=lambda slot: slot["valid_from"])
+
     refresh_cache("startup")
 
     while True:
@@ -79,11 +91,14 @@ def main():
             refresh_cache("missing current slot")
             price, valid_from, valid_to = get_slot_price(slot_from)
 
+        day_slots = day_slots_for_local_date(local_now.date())
+        save_daily_prices_csv(day_slots)
+
         ip = get_ip()
 
         print(f"Price: {price}p | Slot: {valid_from} - {valid_to} | IP: {ip}")
 
-        image = draw_image(price, valid_from, valid_to, ip)
+        image = draw_image(price, valid_from, valid_to, ip, day_slots=day_slots)
         save_preview(image)
         update_screen(epd, image)
 

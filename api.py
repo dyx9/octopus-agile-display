@@ -1,10 +1,11 @@
 import json
+import csv
 from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
 
-from config import API_URL, PRICE_CACHE_PATH
+from config import API_URL, DAILY_PRICES_CSV_PATH, PRICE_CACHE_PATH
 
 
 def _slot_from_api_entry(entry):
@@ -84,3 +85,21 @@ def save_price_cache(slots, last_fetch_utc, cache_path=PRICE_CACHE_PATH):
     }
 
     path.write_text(json.dumps(serializable, indent=2))
+
+
+def save_daily_prices_csv(slots, csv_path=DAILY_PRICES_CSV_PATH):
+    """Persist a flat CSV for histogram/reporting workflows."""
+    path = Path(csv_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    with path.open("w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["valid_from", "valid_to", "price_p_per_kwh"])
+        for slot in sorted(slots, key=_slot_sort_key):
+            writer.writerow(
+                [
+                    slot["valid_from"].isoformat(),
+                    slot["valid_to"].isoformat(),
+                    slot["price"],
+                ]
+            )

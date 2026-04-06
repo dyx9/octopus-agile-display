@@ -61,6 +61,10 @@ Runtime files are written to `artifacts/`:
 
 - `artifacts/preview.png`
 - `artifacts/price_cache.json`
+- `artifacts/daily_prices.csv`
+
+The display now includes a daily price histogram (48 half-hour slots).
+Negative prices are shown as bars below a zero baseline.
 
 ### 7. When screen arrives
 

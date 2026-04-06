@@ -14,4 +14,9 @@ SCREEN_H  = 240
 
 PREVIEW_PATH = "preview.png"
 
-REFRESH_INTERVAL = 1800   # seconds (30 minutes)
+PRICE_CACHE_PATH = "price_cache.json"
+
+# Agile prices are typically published between 16:00 and 20:00 local time.
+EVENING_REFRESH_START_HOUR = 16
+EVENING_REFRESH_END_HOUR = 20
+EVENING_REFRESH_INTERVAL = 900  # seconds (15 minutes)

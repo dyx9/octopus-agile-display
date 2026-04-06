@@ -8,6 +8,7 @@ from utils import now_local
 def _draw_histogram(draw, slots, current_slot_from, x0, y0, width, height):
     # ── Histogram styling constants ─────────────────────
     BAR_GAP = 2
+    BOTTOM_MARGIN = 15  # Padding at bottom to keep bars away from footer
     COLOR_BLACK = (0, 0, 0)
     COLOR_WHITE = (255, 255, 255)
     COLOR_RED = (255, 0, 0)
@@ -25,8 +26,9 @@ def _draw_histogram(draw, slots, current_slot_from, x0, y0, width, height):
     if max_price == min_price:
         max_price = min_price + 1
 
+    effective_height = height - BOTTOM_MARGIN
     zero_ratio = (0 - min_price) / (max_price - min_price)
-    zero_y = y0 + height - int(zero_ratio * height)
+    zero_y = y0 + effective_height - int(zero_ratio * effective_height)
 
     count = len(sorted_slots)
     bar_w = max(1, (width - count * BAR_GAP) // max(1, count))
@@ -42,7 +44,7 @@ def _draw_histogram(draw, slots, current_slot_from, x0, y0, width, height):
 
         value = slot["price"]
         value_ratio = (value - min_price) / (max_price - min_price)
-        value_y = y0 + height - int(value_ratio * height)
+        value_y = y0 + effective_height - int(value_ratio * effective_height)
 
         top = min(zero_y, value_y)
         bottom = max(zero_y, value_y)
@@ -53,6 +55,34 @@ def _draw_histogram(draw, slots, current_slot_from, x0, y0, width, height):
             # Use red for current slot, black for positive, white for negative
             fill = COLOR_RED if is_current else COLOR_BLACK if value >= 0 else COLOR_WHITE
             draw.rectangle([(bar_left, top), (bar_right, bottom)], outline=None, fill=fill)
+
+    # ── Draw time labels at bottom ──────────────────────
+    font_small = ImageFont.load_default()
+    label_hours = [6, 12, 18]
+    label_slot_index = {}
+
+    # Half-hour data has :00 and :30 entries; anchor labels to exact hour slots.
+    for index, slot in enumerate(sorted_slots):
+        slot_time_local = slot["valid_from"].astimezone()
+        if (
+            slot_time_local.hour in label_hours
+            and slot_time_local.minute == 0
+            and slot_time_local.hour not in label_slot_index
+        ):
+            label_slot_index[slot_time_local.hour] = index
+
+    for label_hour in label_hours:
+        index = label_slot_index.get(label_hour)
+        if index is None:
+            continue
+
+        bar_left = x0 + index * (bar_w + BAR_GAP)
+        label_text = str(label_hour)
+        text_bbox = draw.textbbox((0, 0), label_text, font=font_small)
+        text_w = text_bbox[2] - text_bbox[0]
+        label_x = max(x0, min(bar_left, x0 + width - text_w))
+        label_y = y0 + effective_height + 2
+        draw.text((label_x, label_y), label_text, fill=COLOR_BLACK, font=font_small)
 
 
 def draw_image(price, valid_from, valid_to, ip, day_slots=None):

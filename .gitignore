@@ -8,3 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Runtime artifacts
+preview.png
+price_cache.json

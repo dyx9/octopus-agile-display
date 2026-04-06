@@ -7,7 +7,7 @@ from utils import now_local
 
 def _draw_histogram(draw, slots, current_slot_from, x0, y0, width, height):
     if not slots:
-        draw.text((x0 + 4, y0 + 4), "No day data", fill=0)
+        draw.text((x0 + 4, y0 + 4), "No day data", fill=(0, 0, 0))
         return
 
     sorted_slots = sorted(slots, key=lambda slot: slot["valid_from"])
@@ -21,7 +21,6 @@ def _draw_histogram(draw, slots, current_slot_from, x0, y0, width, height):
 
     zero_ratio = (0 - min_price) / (max_price - min_price)
     zero_y = y0 + height - int(zero_ratio * height)
-    draw.line([(x0, zero_y), (x0 + width, zero_y)], fill=0, width=1)
 
     count = len(sorted_slots)
     gap = 2  # 2px gap between bars for clear separation
@@ -42,21 +41,20 @@ def _draw_histogram(draw, slots, current_slot_from, x0, y0, width, height):
         top = min(zero_y, value_y)
         bottom = max(zero_y, value_y)
 
-        if bar_right > bar_left and bottom > top:
-            fill = 0 if value >= 0 else 255
-            draw.rectangle([(bar_left, top), (bar_right, bottom)], outline=0, fill=fill)
+        is_current = current_slot_from and slot["valid_from"] == current_slot_from
 
-        if current_slot_from and slot["valid_from"] == current_slot_from:
-            draw.rectangle([(bar_left, y0), (bar_right, y0 + height)], outline=0, width=1)
+        if bar_right > bar_left and bottom > top:
+            # Use red for current slot, black for others
+            fill = (255, 0, 0) if is_current else (0, 0, 0) if value >= 0 else (255, 255, 255)
+            draw.rectangle([(bar_left, top), (bar_right, bottom)], outline=None, fill=fill)
 
 
 def draw_image(price, valid_from, valid_to, ip, day_slots=None):
     """
     Draw the display image and return a PIL Image object.
-    Uses default PIL fonts for now — replace with ImageFont.truetype()
-    once you have a TTF font file for better rendering.
+    Uses RGB mode for red/black/white e-ink display.
     """
-    image = Image.new("1", (SCREEN_W, SCREEN_H), 255)  # white background
+    image = Image.new("RGB", (SCREEN_W, SCREEN_H), (255, 255, 255))  # white background
     draw  = ImageDraw.Draw(image)
 
     font_small = ImageFont.load_default()
@@ -85,8 +83,8 @@ def draw_image(price, valid_from, valid_to, ip, day_slots=None):
 
     # ── Large current price ────────────────────────────
     price_text = f"{price:.1f}p" if price is not None else "N/A"
-    draw.text((10, 8), price_text, fill=0, font=font_large)
-    draw.text((300, 28), "per kWh", fill=0, font=font_small)
+    draw.text((10, 8), price_text, fill=(0, 0, 0), font=font_large)
+    draw.text((300, 28), "per kWh", fill=(0, 0, 0), font=font_small)
 
     # ── Daily histogram (48 half-hour slots) ───────────
     _draw_histogram(
@@ -100,12 +98,12 @@ def draw_image(price, valid_from, valid_to, ip, day_slots=None):
     )
 
     # ── Divider ────────────────────────────────────────
-    draw.line([(0, 183), (SCREEN_W, 183)], fill=0, width=1)
+    draw.line([(0, 183), (SCREEN_W, 183)], fill=(0, 0, 0), width=1)
 
     # ── Date, update time, IP ──────────────────────────
-    draw.text((10, 191), now.strftime("%a %d %b %Y"),    fill=0, font=font_small)
-    draw.text((10, 203), now.strftime("Updated: %H:%M"), fill=0, font=font_small)
-    draw.text((10, 215), f"IP: {ip}",                    fill=0, font=font_small)
+    draw.text((10, 191), now.strftime("%a %d %b %Y"),    fill=(0, 0, 0), font=font_small)
+    draw.text((10, 203), now.strftime("Updated: %H:%M"), fill=(0, 0, 0), font=font_small)
+    draw.text((10, 215), f"IP: {ip}",                    fill=(0, 0, 0), font=font_small)
 
     return image
 

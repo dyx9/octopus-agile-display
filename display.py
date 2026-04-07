@@ -52,8 +52,8 @@ def _draw_histogram(draw, slots, current_slot_from, x0, y0, width, height):
         is_current = current_slot_from and slot["valid_from"] == current_slot_from
 
         if bar_right > bar_left and bottom > top:
-            # Use red for current slot, black for positive, white for negative
-            fill = COLOR_RED if is_current else COLOR_BLACK if value >= 0 else COLOR_WHITE
+            # Use red for current slot, black for all values (positive and negative)
+            fill = COLOR_RED if is_current else COLOR_BLACK
             draw.rectangle([(bar_left, top), (bar_right, bottom)], outline=None, fill=fill)
 
     # ── Draw time labels at bottom ──────────────────────

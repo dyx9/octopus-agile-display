@@ -34,7 +34,6 @@ def current_slot_times():
 
 
 def seconds_until_next_slot_boundary(now=None):
-    """Return seconds until the next :00 or :30 boundary based on local time."""
     now = now or datetime.now()
     minute = now.minute
 
@@ -42,10 +41,7 @@ def seconds_until_next_slot_boundary(now=None):
         next_boundary = now.replace(minute=30, second=0, microsecond=0)
     else:
         next_boundary = (now + timedelta(hours=1)).replace(
-            minute=0,
-            second=0,
-            microsecond=0,
-        )
+            minute=0, second=0, microsecond=0)
 
     seconds = (next_boundary - now).total_seconds()
-    return max(1, int(seconds))
+    return max(1, int(seconds) + 5)  # +5s buffer to land just after boundary

@@ -53,7 +53,7 @@ python3 test_api.py
 ### 6. Run in preview mode (no screen needed)
 
 ```bash
-python3 main.py
+python3 main.py --simulate
 # Saves artifacts/preview.png each cycle
 ```
 
@@ -66,9 +66,13 @@ Runtime files are written to `artifacts/`:
 The display now includes a daily price histogram (48 half-hour slots).
 Negative prices are shown as bars below a zero baseline.
 
-### 7. When screen arrives
+### 7. Run with the real display on Raspberry Pi
 
-Uncomment the hardware lines in `screen.py`.
+```bash
+python3 main.py
+```
+
+This uses the Waveshare driver at `~/3in52_e-Paper_B/RaspberryPi_JetsonNano/python/lib`.
 
 ## Files
 

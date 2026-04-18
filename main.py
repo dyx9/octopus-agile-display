@@ -1,3 +1,4 @@
+import argparse
 import time
 from datetime import datetime, timedelta, timezone
 
@@ -17,9 +18,20 @@ from display import draw_image, save_preview
 from screen import init_screen, update_screen
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Octopus Agile e-ink display")
+    parser.add_argument(
+        "--simulate",
+        action="store_true",
+        help="Run without the Waveshare device and only save preview images.",
+    )
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
     print("Starting Agile display...")
-    epd = init_screen()
+    epd = init_screen(simulate=args.simulate)
     slots, last_fetch_utc = load_price_cache()
 
     def index_slots(items):

@@ -59,7 +59,6 @@ def update_screen(epd, image):
     red_mono = red_image.convert('1')
 
     epd.display(epd.getbuffer(black_mono), epd.getbuffer(red_mono))
-    epd.TurnOnDisplay()
     print("screen updated")
 
 def clear_screen(epd):

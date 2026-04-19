@@ -1,8 +1,6 @@
-import os
 import sys
 
-
-WAVESHARE_LIB_PATH = os.path.expanduser("~/3in52_e-Paper_B/RaspberryPi_JetsonNano/python/lib")
+from config import WAVESHARE_LIB_PATH
 
 
 def _load_driver():

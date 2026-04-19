@@ -1,38 +1,93 @@
-# Agile Display
+# Octopus Agile E-Ink Display for Raspberry Pi
 
-Raspberry Pi e-ink display for Octopus Agile tariff prices.
+Small Raspberry Pi project that shows Octopus Agile electricity prices on a Waveshare 3.52 inch red/black/white e-ink screen.
 
-## Hardware
+## 1. Introduction
 
-- Raspberry Pi 3 Model B
-- Waveshare 3.52" e-Paper HAT (360x240) — red/black/white version
+What it does:
 
-## Setup
+- Fetches half-hour Agile prices from the Octopus API.
+- Shows current price and a daily histogram on the e-ink display.
+- Caches data locally so it can continue displaying during short API/network issues.
+- Supports `--simulate` mode for development without hardware.
 
-Requires Python 3.13+ (see `pyproject.toml`).
+Runtime artifacts:
 
-### 1. Enable SPI
+- `artifacts/preview.png`
+- `artifacts/price_cache.json`
+- `artifacts/daily_prices.csv`
+
+## 2. Requirements
+
+### Hardware
+
+- Raspberry Pi (tested target: Raspberry Pi 3 Model B)
+- Waveshare 3.52 inch e-Paper HAT (B), 360x240, red/black/white
+
+### Software
+
+- Linux on Raspberry Pi for real hardware mode
+- Python 3.13+
+- `uv` for Python environment and dependency management
+- System packages: `git`, `wget`, `unzip`
+- SPI enabled on the Pi
+
+### Install steps
+
+#### Step 1: Enable SPI
 
 ```bash
 sudo raspi-config
-# Interface Options → SPI → Yes
+# Interface Options -> SPI -> Yes
 ```
 
-### 2. Install dependencies
+#### Step 2: Install system packages
 
 ```bash
-sudo apt install python3-pip python3-pillow git -y
-pip3 install requests --break-system-packages
+sudo apt-get update
+sudo apt-get install -y git wget unzip
 ```
 
-### 3. Install Waveshare library
+#### Step 3: Install uv
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Open a new shell after installation.
+
+#### Step 4: Install project dependencies with uv
+
+From this repository root:
+
+```bash
+uv sync
+```
+
+Notes:
+
+- Python dependencies are declared in `pyproject.toml`.
+- `spidev` is Linux-only in project dependencies, so it installs on Raspberry Pi and is skipped on macOS.
+
+#### Step 5: Install Waveshare driver package (B variant)
 
 ```bash
 cd ~
-git clone https://github.com/waveshare/e-Paper.git
+wget https://files.waveshare.com/wiki/3.52inch%20e-Paper%20HAT%20(B)/3in52_e-Paper_B.zip
+unzip 3in52_e-Paper_B.zip
 ```
 
-### 4. Set your region
+Default library path expected by this project:
+
+```text
+~/3in52_e-Paper_B/RaspberryPi_JetsonNano/python/lib
+```
+
+If your path differs, update `WAVESHARE_LIB_PATH` in `config.py`, or set the `WAVESHARE_LIB_PATH` environment variable.
+
+## 3. How To Use
+
+### Configure region
 
 Edit `config.py` and set `REGION` to your DNO region code:
 
@@ -44,52 +99,61 @@ Edit `config.py` and set `REGION` to your DNO region code:
 - K = South West
 - P = Scotland
 
-### 5. Test API (no screen needed)
+### Quick API sanity test (no screen required)
 
 ```bash
-python3 test_api.py
+uv run python test_api.py
 ```
 
-### 6. Run in preview mode (no screen needed)
+### Preview mode (development machine, no hardware)
 
 ```bash
-python3 main.py --simulate
-# Saves artifacts/preview.png each cycle
+uv run python main.py --simulate
 ```
 
-Runtime files are written to `artifacts/`:
+This writes preview output to `artifacts/preview.png` every cycle.
 
-- `artifacts/preview.png`
-- `artifacts/price_cache.json`
-- `artifacts/daily_prices.csv`
-
-The display now includes a daily price histogram (48 half-hour slots).
-Negative prices are shown as bars below a zero baseline.
-
-### 7. Run with the real display on Raspberry Pi
+### Run on Raspberry Pi (foreground)
 
 ```bash
-python3 main.py
+uv run python main.py
 ```
 
-This uses the Waveshare driver at `~/3in52_e-Paper_B/RaspberryPi_JetsonNano/python/lib`.
+### Run on Raspberry Pi in background with nohup
 
-## Files
+Use this if you want the program to keep running after you close SSH/session:
 
-| File        | Purpose                      |
-| ----------- | ---------------------------- |
-| config.py   | All settings                 |
-| api.py      | Octopus API fetching         |
-| display.py  | Image drawing                |
-| screen.py   | Waveshare hardware interface |
-| utils.py    | IP address, time helpers     |
-| main.py     | Entry point, main loop       |
-| test_api.py | Standalone API test          |
+```bash
+cd /home/pi/agile-display
+nohup /home/pi/.local/bin/uv run python main.py > artifacts/nohup.log 2>&1 &
+echo $! > artifacts/agile-display.pid
+```
 
-## Auto-start on boot
+Useful process management commands:
+
+```bash
+tail -f /home/pi/agile-display/artifacts/nohup.log
+kill "$(cat /home/pi/agile-display/artifacts/agile-display.pid)"
+```
+
+### Optional: auto-start on boot
+
+Auto-start is optional. If you prefer manual start, skip this section.
 
 ```bash
 crontab -e
 # Add:
-@reboot sleep 30 && python3 /home/pi/agile-display/main.py &
+@reboot sleep 30 && cd /home/pi/agile-display && /home/pi/.local/bin/uv run python main.py >> artifacts/boot.log 2>&1
 ```
+
+## Project Files
+
+| File        | Purpose                      |
+| ----------- | ---------------------------- |
+| config.py   | Settings and paths           |
+| api.py      | Octopus API and cache I/O    |
+| display.py  | Image rendering              |
+| screen.py   | Waveshare hardware interface |
+| utils.py    | Time and network helpers     |
+| main.py     | Main loop and scheduling     |
+| test_api.py | API smoke test               |
